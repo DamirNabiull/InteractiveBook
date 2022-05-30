@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <video autoplay muted id="myVideo">
+        <!-- add video -->
+    </video>
+    <script>
+        const myVideo = document.getElementById("myVideo");
+
+        $(myVideo).on("click", function(e){
+            myVideo.muted = !myVideo.muted;
+        });
+    </script>
+</body>
+</html>

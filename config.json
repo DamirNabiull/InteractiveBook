@@ -1,0 +1,31 @@
+{
+  "platform": "windows",
+  "linux": "usr/bin/chromedriver",
+  "windows": "Assets\\chromedriver.exe",
+  "debug": "yes",
+  "cropXm": 0,
+  "cropXM": 1280,
+  "cropYm": 0,
+  "cropYM": 720,
+  "width": 1280,
+  "height": 720,
+  "ksize": 3,
+  "pages": {
+    "1": "video",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+    "6": "6",
+    "7": "7",
+    "8": "8",
+    "9": "9",
+    "10": "10",
+    "11": "11",
+    "12": "12",
+    "13": "13",
+    "14": "14",
+    "15": "15",
+    "16": "16"
+  }
+}
