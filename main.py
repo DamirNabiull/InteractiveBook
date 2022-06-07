@@ -20,14 +20,10 @@ width = config['width']
 
 
 def get_qr_valur(image):
-    val = 0
-    try:
-        if len(dm.decode(img)) == 0:
-            return 0
-        val = dm.decode(img)[0].data.decode("utf-8")
-    except Exception as e:
-        logging.error(e)
-    return val
+    decode_arr = dm.decode(image)
+    if len(decode_arr) == 0:
+        return 0
+    return decode_arr[0].data.decode("utf-8")
 
 
 def create_page(pid, video_name):
