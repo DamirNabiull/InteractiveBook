@@ -2,15 +2,20 @@ import cv2
 import os
 import json
 from Driver import MyDriver, logging
+from selenium.webdriver.common.by import By
 import pylibdmtx.pylibdmtx as dm
 
+
 available = []
+current = 0
+
 path = os.getcwd()
 prototype = open('Site/index.html', 'r').read()
 config = json.load(open('config.json', 'r'))
-debug = False
+debug = config['debug']
 k = config['ksize']
 ksize = (k, k)
+useBlur = config['useBlur']
 xMin = config['cropXm']
 yMax = config['cropYM']
 xMax = config['cropXM']
@@ -19,11 +24,18 @@ height = config['height']
 width = config['width']
 
 
-def get_qr_valur(image):
-    decode_arr = dm.decode(image)
+def get_qr_value(image):
+    settings = config['decoder']
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    decode_arr = dm.decode(
+        gray, 
+        max_count=settings['maxCount'], 
+        threshold=settings['threshold'], 
+        shrink=settings['shrink'])
+
     if len(decode_arr) == 0:
         return 0
-    return decode_arr[0].data.decode("utf-8")
+    return decode_arr[0].data.decode()
 
 
 def create_page(pid, video_name):
@@ -36,8 +48,6 @@ def create_page(pid, video_name):
 
 def load_data():
     global debug, available
-    if config['debug'] == 'yes':
-        debug = True
     pages = config['pages']
     for pid in pages:
         available.append(int(pid))
@@ -47,22 +57,18 @@ def load_data():
 def crop(image):
     global yMax, yMin, xMax, xMin, ksize
     crop_img = image[yMin:yMax, xMin:xMax]
-    crop_img = cv2.blur(crop_img, ksize, cv2.BORDER_DEFAULT)
+
+    if useBlur:
+        crop_img = cv2.blur(crop_img, ksize, cv2.BORDER_DEFAULT)
+
     return crop_img
 
 
 load_data()
-
-current = 0
-det = cv2.QRCodeDetector()
-
 driver = MyDriver.getInstance()
 driver = driver.GetDriver()
 
-logging.warning(f'Player: Start player')
-
-element = driver.find_element_by_id("myVideo")
-element.click()
+print('Player: Start player')
 
 cam = cv2.VideoCapture(0)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -70,18 +76,17 @@ cam.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
 img_counter = 0
 
-logging.warning(f'Camera: Start capture')
-
+print('Camera: Start capture')
 print(available)
+
 while True:
     ret, frame = cam.read()
     if not ret:
-        logging.error(f'Camera: FAILED TO GRAB')
-        print("failed to grab frame")
+        print("Camera: Failed to grab frame")
         break
 
     img = crop(frame)
-    qr_value = get_qr_valur(img)
+    qr_value = get_qr_value(img)
 
     if debug:
         cv2.imshow("debug", img)
@@ -96,7 +101,7 @@ while True:
         logging.warning(f'QR: Value = {qr_value}')
         current = qr_value
         driver.get(os.path.join(os.getcwd(), 'Site', f'{qr_value}.html'))
-        element = driver.find_element_by_id("myVideo")
+        element = driver.find_element(By.ID, "myVideo")
         element.click()
 
 

@@ -1,0 +1,3 @@
+opencv-python==4.10.0.84
+selenium==4.25.0
+pylibdmtx==0.1.10

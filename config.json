@@ -1,8 +1,8 @@
 {
   "platform": "windows",
   "linux": "usr/bin/chromedriver",
-  "windows": "Assets\\chromedriver.exe",
-  "debug": "yes",
+  "windows": "Assets/chromedriver.exe",
+  "debug": true,
   "cropXm": 0,
   "cropXM": 300,
   "cropYm": 0,
@@ -10,22 +10,14 @@
   "width": 1280,
   "height": 720,
   "ksize": 3,
+  "useBlur": false,
   "pages": {
     "1": "1",
-    "2": "2",
-    "3": "3",
-    "4": "4",
-    "5": "5",
-    "6": "6",
-    "7": "7",
-    "8": "8",
-    "9": "9",
-    "10": "10",
-    "11": "11",
-    "12": "12",
-    "13": "13",
-    "14": "14",
-    "15": "15",
-    "16": "16"
+    "2": "2"
+  },
+  "decoder": {
+    "maxCount": 1,
+    "threshold": 50,
+    "shrink": 3
   }
 }
