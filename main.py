@@ -5,6 +5,8 @@ from Driver import MyDriver, logging
 from selenium.webdriver.common.by import By
 import pylibdmtx.pylibdmtx as dm
 
+CONTOUR_AREA_MIN = 1000
+CONTOUR_AREA_MAX = 100000
 
 available = []
 current = 0
@@ -35,6 +37,7 @@ def get_qr_value(image):
 
     if len(decode_arr) == 0:
         return 0
+
     return decode_arr[0].data.decode()
 
 
@@ -64,6 +67,53 @@ def crop(image):
     return crop_img
 
 
+def get_boxes(image) -> list:
+    black_border_boxes = []
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    edges = cv2.Canny(thresh, 50, 150)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        epsilon = 0.02 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+        # Check if the contour is a rectangle (4 vertices)
+        if len(approx) == 4 and cv2.contourArea(contour) > CONTOUR_AREA_MIN:
+            black_border_boxes.append(contour)
+
+    return black_border_boxes
+
+
+def get_qr_value_for_boxes(boxes, image):
+    print(f'get_qr_value_for_boxes count of boxes: {len(boxes)}')
+    settings = config['decoder']
+
+    for box in boxes:
+        x, y, w, h = cv2.boundingRect(box)
+        boxed_image = image[y:y+h, x:x+w]
+
+        try:
+            decode_arr = dm.decode(
+                boxed_image, 
+                max_count=settings['maxCount'], 
+                threshold=settings['threshold'], 
+                shrink=settings['shrink'])
+
+            if len(decode_arr) != 0:
+                return decode_arr[0].data.decode()
+        except:
+            continue
+
+    return 0
+
+
+def get_boxed_image(boxes, image):
+    output_image = image.copy()
+    cv2.drawContours(output_image, boxes, -1, (0, 255, 0), 3)
+    return output_image
+
+
 load_data()
 driver = MyDriver.getInstance()
 driver = driver.GetDriver()
@@ -85,11 +135,15 @@ while True:
         print("Camera: Failed to grab frame")
         break
 
-    img = crop(frame)
-    qr_value = get_qr_value(img)
+    # img = crop(frame)
+    # qr_value = get_qr_value(img)
+
+    boxes = get_boxes(frame)
+    qr_value = get_qr_value_for_boxes(boxes, frame)
+    boxed_image = get_boxed_image(boxes, frame)
 
     if debug:
-        cv2.imshow("debug", img)
+        cv2.imshow("debug", boxed_image)
         k = cv2.waitKey(1)
         if k % 256 == 32:
             img_name = "opencv_frame_{}.png".format(img_counter)
